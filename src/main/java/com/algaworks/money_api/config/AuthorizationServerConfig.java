@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -24,13 +25,14 @@ public class AuthorizationServerConfig   extends AuthorizationServerConfigurerAd
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private OAuthSecurityConfig oAuthSecurityConfig;
+    private UserDetailsService userDetailsService;
+
 
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.inMemory()
                 .withClient("angular") // usuario
-                .secret("angular") // senha
+                .secret("$2a$10$HkBRRCRnShQSBnB.ibKIleVUHaya9/Sh6YA92zqSwSBMI0AMdC5LW") // senha
                 .scopes("read", "write") //define o que o usuario pode acessar, essas strings n importam o nome, vão ser configuradas dps
                 .authorizedGrantTypes("password", "refresh_token") // pra atualizar o token
                 .accessTokenValiditySeconds(3600) //token valido por 30 min
@@ -41,9 +43,10 @@ public class AuthorizationServerConfig   extends AuthorizationServerConfigurerAd
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
         endpoints
                 .tokenStore(tokenStore())
-                .accessTokenConverter(accesTokenConverter())
+                .accessTokenConverter(this.accesTokenConverter())
                 .reuseRefreshTokens(false) // se não colocar essa opção o token vai renovar so dps de 24 hrs
-                .authenticationManager(authenticationManager);
+                .userDetailsService(this.userDetailsService)
+                .authenticationManager(this.authenticationManager);
     }
 
     @Bean
