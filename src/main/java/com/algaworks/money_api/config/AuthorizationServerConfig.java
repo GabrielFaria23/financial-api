@@ -1,0 +1,60 @@
+package com.algaworks.money_api.config;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+
+
+
+@Configuration
+@EnableAuthorizationServer
+public class AuthorizationServerConfig   extends AuthorizationServerConfigurerAdapter {
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private OAuthSecurityConfig oAuthSecurityConfig;
+
+    @Override
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+        clients.inMemory()
+                .withClient("angular") // usuario
+                .secret("angular") // senha
+                .scopes("read", "write") //define o que o usuario pode acessar, essas strings n importam o nome, vão ser configuradas dps
+                .authorizedGrantTypes("password", "refresh_token") // pra atualizar o token
+                .accessTokenValiditySeconds(3600) //token valido por 30 min
+                .refreshTokenValiditySeconds(3600 * 24); //tempo de atualização do token
+    }
+
+    @Override
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+        endpoints
+                .tokenStore(tokenStore())
+                .accessTokenConverter(accesTokenConverter())
+                .reuseRefreshTokens(false) // se não colocar essa opção o token vai renovar so dps de 24 hrs
+                .authenticationManager(authenticationManager);
+    }
+
+    @Bean
+    public JwtAccessTokenConverter accesTokenConverter() {
+        JwtAccessTokenConverter accessTokenConverter = new JwtAccessTokenConverter();
+        accessTokenConverter.setSigningKey("algaworks");
+        return accessTokenConverter;
+    }
+
+    @Bean
+    public TokenStore tokenStore() {
+        return new JwtTokenStore(accesTokenConverter());
+    }
+}
