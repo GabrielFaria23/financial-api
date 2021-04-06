@@ -3,6 +3,7 @@ package com.algaworks.money_api.resource;
 import com.algaworks.money_api.event.RecursoCriadoEvent;
 import com.algaworks.money_api.exceptionhandler.MoneyExceptionHandler;
 import com.algaworks.money_api.model.Lancamento;
+import com.algaworks.money_api.projection.ResumoLancamento;
 import com.algaworks.money_api.repository.LancamentoRepository;
 import com.algaworks.money_api.repository.filter.LancamentoFilter;
 import com.algaworks.money_api.service.LancamentoService;
@@ -43,6 +44,12 @@ public class LancamentoResource {
     @PreAuthorize("hasAuthority('ROLE_PESQUISAR_LANCAMENTO') and #oauth2.hasScope('read')")
     public Page<Lancamento> pesquisar(LancamentoFilter lancamentoFilter, Pageable pageable) {
         return lancamentoRepository.filtrar(lancamentoFilter, pageable);
+    }
+
+    @GetMapping(params = "resumo") // se encontrar um parametro resumo ele encaminha pra esse metodo
+    @PreAuthorize("hasAuthority('ROLE_PESQUISAR_LANCAMENTO') and #oauth2.hasScope('read')")
+    public Page<ResumoLancamento> resumir(LancamentoFilter lancamentoFilter, Pageable pageable) {
+        return lancamentoRepository.resumir(lancamentoFilter, pageable);
     }
 
     @GetMapping("/{codigo}")
