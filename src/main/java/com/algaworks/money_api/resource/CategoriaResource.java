@@ -7,12 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -26,11 +25,13 @@ public class CategoriaResource {
 
     @CrossOrigin(maxAge = 10, origins = { "http://localhost:8000"})
     @GetMapping
+    @PreAuthorize("hasAuthority('ROLE_PESQUISAR_CATEGORIA')") // para usar essa anotação tem que ajustar configurações no resourceServerConfig ex: add Bean and add Annotation @EnableGlobalMethodSecurity
     public List<Categoria> listar() {
         return categoriaRepository.findAll();
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_CADASTRAR_CATEGORIA')")
     public ResponseEntity<Categoria> criar(@Valid @RequestBody Categoria categoria, HttpServletResponse response){
         Categoria categoriaSalva = categoriaRepository.save(categoria);
 
@@ -40,6 +41,7 @@ public class CategoriaResource {
     }
 
     @GetMapping("/{codigo}")
+    @PreAuthorize("hasAuthority('ROLE_PESQUISAR_CATEGORIA')")
     public ResponseEntity<Categoria> buscarPeloCodigo(@PathVariable Long codigo) {
         return categoriaRepository.findById(codigo)
                 .map(categoria -> ResponseEntity.ok().body(categoria))
